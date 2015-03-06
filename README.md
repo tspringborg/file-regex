@@ -15,6 +15,7 @@ now $ file-regex should be available everywhere.
 $ file-regex
 ```
 A prompt should start.
+
 1. Input a regex that matches the files that should be modified. (ex. \.txt$ matches all txt files)
 2. Verify that the files matched are okay or try again.
 3. Input a regex that matches the text you want to replace. Not possible to set flags. Global flag is on per default.
@@ -23,8 +24,8 @@ A prompt should start.
 
 
 ### Roadmap
-*Set flags.
-*Setup as npm module and submit.
-*Write tests.
+* Set flags.
+* Setup as npm module and submit.
+* Write tests.
 
 
