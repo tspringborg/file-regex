@@ -24,10 +24,9 @@
     "url": "https://github.com/tspringborg/file-regex/issues"
   },
   "homepage": "https://github.com/tspringborg/file-regex",
-  "devDependencies": {
-    "walkdir": "0.0.7"
-  },
+  "devDependencies": {},
   "dependencies": {
+    "prompt": "^0.2.14",
     "walkdir": "0.0.7"
   }
 }

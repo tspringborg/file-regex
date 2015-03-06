@@ -6,78 +6,110 @@
 var fs = require('fs')
 var walk = require('walkdir');
 var path = require('path');
+var prompt = require('prompt');
 var type = process.argv[2];
-var fileNameMatchRegex = new RegExp(process.argv[3]);
-var fileDataRegex = new RegExp(process.argv[4], "g");
-var fileDataReplace = process.argv[5];
+var fileRegex,files;
+
 console.log('file-regex in directory: ' + process.cwd());
-console.log('type: ' + type);
-console.log('fileNameMatchRegex: '+fileNameMatchRegex);
-console.log('fileDataRegex: '+fileDataRegex);
-console.log('fileDataReplace: '+fileDataReplace);
-switch(type){
-    case 'undefined':
-    case null:
-    case false:
-    case '':
-    case 'help':
-        help();
-        break;
-    case 'replace':
-    case 'test':
-        initWalker();
+
+prompt.message = 'File-Regex'.underline;
+
+
+
+function promptFileRegex(){
+    prompt.start();
+    prompt.get({
+        properties: {
+            fileregex: {
+                description: "regex to match file names".yellow
+            }
+        }
+    }, function (err, result) {
+        fileRegex = new RegExp(result.fileregex, 'g');
+        getFiles();
+    });
 }
 
-function initWalker(){
-    walk(process.cwd(),function(path,stat){
+promptFileRegex();
+
+function promptYesNo(message, yes, no){
+    prompt.start();
+    prompt.get({
+        properties: {
+            "y/n": {
+                description: message.yellow+" (y,n)".yellow
+            }
+        }
+    }, function (err, result) {
+        if(result["y/n"] == 'y'){
+            yes();
+        }else{
+            no();
+        }
+    });
+}
+
+function getFiles(){
+    var foundFiles = [];
+    var walker = walk(process.cwd(),function(path,stat){
         //if not dir
         if(path.match(/\.(.){2,}/gi)){
             //console.log(path+' is file');
-            var filename = path.split('/');
-            filename = filename[filename.length-1];
-            if(filename.match(fileNameMatchRegex)){
-                if(type == 'replace'){
-                    replaceInFile(path);
-                }else if(type == 'test'){
-                    console.log("file-match: "+path);
-                }
+            if(path.match(fileRegex)){
+                console.log("file-match: "+path);
+                foundFiles.push(path);
             }
         }else{
             //console.log(path+' is not file');
         }
     });
-}
-
-function replaceInFile(file){
-    console.log('replaceInFile: '+file);
-
-    fs.readFile(file, 'utf8', function (err,data) {
-        if (err) {
-            return console.log(err);
-        }
-        var result = data.replace(fileDataRegex, fileDataReplace);
-        fs.writeFile(file, result, 'utf8', function (err) {
-            if (err) return console.log(err);
-            console.log('replace done: '+file);
-        });
+    walker.on("end", function () {
+        files = foundFiles;
+        console.log(foundFiles.length+" files match the regex");
+        promptYesNo('Is your regex ok?', promptFileReplace, promptFileRegex)
     });
-
 }
 
-function help(){
-    console.log('')
-    console.log('#########  HELP  #################')
-    console.log('file-regex can do batch regex operations recursively in a directory')
-    console.log('')
-    console.log('$ file-regex [type] [filename regex] [ [filedata regex] [replace value] ]')
-    console.log('')
-    console.log('[type]: replace')
-    console.log('replaces in the files')
-    console.log('')
-    console.log('[type]: test')
-    console.log('tests what files will be matched')
-    console.log('')
-    console.log('--- example ----')
-    console.log('replace all instances of monkey with horse in txt files')
-    console.log('file-regex replace \\\\.txt$ \\([M|m)onkey\\) horse')
+var filesToReplace;
+function promptFileReplace(){
+    prompt.start();
+    prompt.get({
+        properties: {
+            regex: {
+                description: "regex to match data in files".yellow
+            },
+            replace:{
+                description:"replace with...   ".yellow
+            }
+        }
+    }, function (err, result) {
+        filesToReplace = files.length;
+        function checkIfDone(){
+            if(filesToReplace == 0){
+                console.log("Done".underline)
+                promptYesNo("Do another replace on the same batch of files?", promptFileReplace, exit)
+            }
+        }
+        var file;
+        var regex = new RegExp(result.regex, 'g');
+        for(var i = files.length-1; i>=0; i--){
+            file = files[i];
+            fs.readFile(file, 'utf8', function (err,data) {
+                if (err) {
+                    return console.log(err);
+                    filesToReplace--;
+                }
+                var regexed = data.replace(regex, result.replace);
+                fs.writeFile(file, regexed, 'utf8', function (err) {
+                    if (err) return console.log(err);
+                    filesToReplace--;
+                    checkIfDone();
+                });
+            });
+        }
+    });
+}
+
+function exit(){
+    console.log('kkthx bai bai'.green);
 }
