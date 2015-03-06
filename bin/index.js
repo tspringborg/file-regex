@@ -16,7 +16,12 @@ console.log('fileNameMatchRegex: '+fileNameMatchRegex);
 console.log('fileDataRegex: '+fileDataRegex);
 console.log('fileDataReplace: '+fileDataReplace);
 switch(type){
+    case 'undefined':
+    case null:
+    case false:
+    case '':
     case 'help':
+        help();
         break;
     case 'replace':
     case 'test':
@@ -57,4 +62,22 @@ function replaceInFile(file){
         });
     });
 
+}
+
+function help(){
+    console.log('')
+    console.log('#########  HELP  #################')
+    console.log('file-regex can do batch regex operations recursively in a directory')
+    console.log('')
+    console.log('$ file-regex [type] [filename regex] [ [filedata regex] [replace value] ]')
+    console.log('')
+    console.log('[type]: replace')
+    console.log('replaces in the files')
+    console.log('')
+    console.log('[type]: test')
+    console.log('tests what files will be matched')
+    console.log('')
+    console.log('--- example ----')
+    console.log('replace all instances of monkey with horse in txt files')
+    console.log('file-regex replace \\\\.txt$ \\([M|m)onkey\\) horse')
 }
