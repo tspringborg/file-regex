@@ -1,0 +1,32 @@
+{
+  "name": "file-regex",
+  "version": "0.0.0",
+  "description": "batch regex operations on files",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tspringborg/file-regex"
+  },
+  "keywords": [
+    "regex",
+    "fileoperation"
+  ],
+  "author": "Thomas Springborg <ts@molamil.com> (http://springb.org/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tspringborg/file-regex/issues"
+  },
+  "homepage": "https://github.com/tspringborg/file-regex",
+  "devDependencies": {
+    "walkdir": "0.0.7",
+    "underscore": "^1.8.2",
+    "jasmine-node": "^1.14.5"
+  },
+  "dependencies": {
+    "walkdir": "0.0.7",
+    "underscore": "^1.8.2"
+  }
+}
