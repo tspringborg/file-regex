@@ -85,28 +85,31 @@ function promptFileReplace(){
     }, function (err, result) {
         filesToReplace = files.length;
         function checkIfDone(){
-            if(filesToReplace == 0){
+            if(filesRemaining.length == 0){
                 console.log("Done".underline)
                 promptYesNo("Do another replace on the same batch of files?", promptFileReplace, exit)
+            }else{
+                replaceInNextFile();
             }
         }
         var file;
+        var filesRemaining = files.concat([]);
         var regex = new RegExp(result.regex, 'g');
-        for(var i = files.length-1; i>=0; i--){
-            file = files[i];
+        var replaceInNextFile = function(){
+            file = filesRemaining.pop();
+            console.log('replacing in :'+file);
             fs.readFile(file, 'utf8', function (err,data) {
                 if (err) {
                     return console.log(err);
-                    filesToReplace--;
                 }
                 var regexed = data.replace(regex, result.replace);
                 fs.writeFile(file, regexed, 'utf8', function (err) {
                     if (err) return console.log(err);
-                    filesToReplace--;
                     checkIfDone();
                 });
             });
         }
+        checkIfDone();
     });
 }
 
