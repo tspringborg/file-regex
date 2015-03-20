@@ -26,6 +26,8 @@
   "homepage": "https://github.com/tspringborg/file-regex",
   "devDependencies": {},
   "dependencies": {
+    "inquirer": "^0.8.0",
+    "lodash": "^3.5.0",
     "prompt": "^0.2.14",
     "walkdir": "0.0.7"
   }
