@@ -17,14 +17,21 @@ console.log('file-regex in directory: ' + process.cwd());
 prompt.message = 'File-Regex'.underline;
 
 var OPS = {
-    REGEX_IN_FILES:'regex replace in files',
-    REGEX_ON_FILENAMES:'regex replace on filenames'
+    REGEX_CHANGE:'Change file matching regex'.yellow,
+    REGEX_IN_FILES:'Regex on files'.yellow,
+    REGEX_ON_FILENAMES:'Regex on filenames'.yellow,
+    REPORT:"Generate report".yellow,
+    EXIT:"Exit".red
 }
+
+var FILENAME_REGEX = "filename regex";
+var FILEDATA_REGEX = "filedata regex";
+var FILEDATA_REPLACE = "filedata replace";
 
 var questions = {
     operation:{
         type:"list",
-        message:"What do you want to do?",
+        message:OPS.REGEX_IN_FILES,
         name:"operation",
         default:'regex replace in files',
         choices: _.toArray(OPS)
@@ -36,26 +43,42 @@ var questions = {
         default:''
     }
 }
+var files = [];
+var menu = function(){
+    if(files.length>0){
+        //show full menu
+        inquirer.prompt(
+            [
+                {
+                    type:"list",
+                    message:"What do you want to do?",
+                    name:"operation",
+                    default:'regex replace in files',
+                    choices: _.toArray(OPS)
+                }
+            ], function(a){
+                switch(a.operation){
+                    case OPS.REGEX_IN_FILES:
+                        promptFileReplace();
+                        break;
+                    case OPS.REGEX_ON_FILENAMES:
+                        break;
+                    case OPS.REGEX_CHANGE:
+                        console.log('asd');
+                        promptFileRegex();
+                        break;
+                }
+        })
+    }else{
+        //prompt file matching regex
+        promptFileRegex();
+    }
+}
 
 var answers = {};
-var init = function(){
-    //askQuestions([questions.operation],function(){
-        //if(answers.op)
-    //})
-    inquirer.prompt([questions.operation], function(a){
-        _.extend(answers, a);
-        console.log(answers);
-        inquirer.prompt([questions.file_matching_regex], function(a){
-            _.extend(answers, a);
-            switch(answers.operation){
-                case OPS.REGEX_IN_FILES:
-                    break;
-                case OPS.REGEX_ON_FILENAMES:
-                    break;
-            }
-        })
-    })
-}
+
+menu();
+
 
 function askQuestions(q, callback){
     inquirer.prompt(q, function(a){
@@ -71,10 +94,12 @@ function promptFileRegex(){
     prompt.get({
         properties: {
             fileregex: {
-                description: "regex to match file names".yellow
+                description: "regex to match file names".yellow,
+                default:answers.FILEDATA_REGEX || ""
             }
         }
     }, function (err, result) {
+        _.extend(answers, {FILEDATA_REGEX:result.fileregex});
         fileRegex = new RegExp(result.fileregex, 'g');
         getFiles();
     });
@@ -115,10 +140,12 @@ function getFiles(){
     });
     walker.on("end", function () {
         files = foundFiles;
-        console.log(foundFiles.length+" files match the regex");
-        promptYesNo('Is your regex ok?', promptFileReplace, promptFileRegex)
+        var msg = foundFiles.length+" files match the regex";
+        console.log(msg.underline);
+        menu();
     });
 }
+
 
 var filesToReplace;
 function promptFileReplace(){
