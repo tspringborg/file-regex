@@ -3,7 +3,7 @@
 /**
  * Created by ts on 06/03/15.
  */
-var fs = require('fs')
+var fs = require('fs-extra')
 var inquirer = require("inquirer");
 var _ = require("lodash");
 var walk = require('walkdir');
@@ -200,6 +200,10 @@ function promptFileRename(){
             },
             replace:{
                 description:"replace with...   ".yellow
+            },
+            copy:{
+                description:"Copy file? (y/n)".yellow,
+                default: "n"
             }
         }
     }, function (err, result) {
@@ -209,22 +213,30 @@ function promptFileRename(){
                 console.log("Done".underline)
                 promptYesNo("Do another rename on the same batch of files?", promptFileRename, menu)
             }else{
-                replaceInNextFile();
+                handleNextFile();
             }
         }
         var file;
         var filesRemaining = files.concat([]);
         console.log(result.flags);
         var regex = new RegExp(result.regex, ""+result.flags);
-        var replaceInNextFile = function(){
+        var handleNextFile = function(){
             file = filesRemaining.pop();
             var newFile = file.replace(regex, result.replace)
-            console.log('renaming: '+file+" -> "+newFile);
             //fs.rename(oldPath, newPath, callback)#
-            fs.rename(file, newFile, function(err){
-                if (err) throw err;
-                checkIfDone();
-            })
+            if(result.copy == 'n'){
+                console.log('renaming: '+file+" -> "+newFile);
+                fs.rename(file, newFile, function(err){
+                    if (err) throw err;
+                    checkIfDone();
+                })
+            }else{
+                console.log('copying: '+file+" -> "+newFile);
+                fs.copy(file, newFile, function(err){
+                    if (err) throw err;
+                    checkIfDone();
+                })
+            }
         }
         checkIfDone();
     });
