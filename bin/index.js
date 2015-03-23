@@ -62,6 +62,7 @@ var menu = function(){
                         promptFileReplace();
                         break;
                     case OPS.REGEX_ON_FILENAMES:
+                        promptFileRename();
                         break;
                     case OPS.REGEX_CHANGE:
                         console.log('asd');
@@ -126,18 +127,13 @@ function promptYesNo(message, yes, no){
 
 function getFiles(){
     var foundFiles = [];
-    var walker = walk(process.cwd(),function(path,stat){
-        //if not dir
-        if(path.match(/\.(.){2,}/gi)){
-            //console.log(path+' is file');
-            if(path.match(fileRegex)){
-                console.log("file-match: "+path);
-                foundFiles.push(path);
-            }
-        }else{
-            //console.log(path+' is not file');
+    var walker = walk(process.cwd());
+    walker.on("file", function(file){
+        if(file.match(fileRegex)){
+            console.log("file-match: "+file);
+            foundFiles.push(file);
         }
-    });
+    })
     walker.on("end", function () {
         files = foundFiles;
         var msg = foundFiles.length+" files match the regex";
@@ -185,6 +181,50 @@ function promptFileReplace(){
                     checkIfDone();
                 });
             });
+        }
+        checkIfDone();
+    });
+}
+
+var filesToRename;
+function promptFileRename(){
+    prompt.start();
+    prompt.get({
+        properties: {
+            regex: {
+                description: "regex to run on filename".yellow
+            },
+            flags: {
+                description: "flags".yellow,
+                default: "gi"
+            },
+            replace:{
+                description:"replace with...   ".yellow
+            }
+        }
+    }, function (err, result) {
+        filesToRename = files.length;
+        function checkIfDone(){
+            if(filesRemaining.length == 0){
+                console.log("Done".underline)
+                promptYesNo("Do another rename on the same batch of files?", promptFileRename, menu)
+            }else{
+                replaceInNextFile();
+            }
+        }
+        var file;
+        var filesRemaining = files.concat([]);
+        console.log(result.flags);
+        var regex = new RegExp(result.regex, ""+result.flags);
+        var replaceInNextFile = function(){
+            file = filesRemaining.pop();
+            var newFile = file.replace(regex, result.replace)
+            console.log('renaming: '+file+" -> "+newFile);
+            //fs.rename(oldPath, newPath, callback)#
+            fs.rename(file, newFile, function(err){
+                if (err) throw err;
+                checkIfDone();
+            })
         }
         checkIfDone();
     });
